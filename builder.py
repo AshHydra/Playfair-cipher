@@ -1,142 +1,66 @@
-def prepare_text(text):
-    # Odstranit mezery, převést na velká písmena a nahradit "J" písmenem "I"
-    text = text.replace(" ", "").upper().replace("J", "I")
-    # Doplň doplňující znak, pokud je délka lichá
-    if len(text) % 2 != 0:
-        text += "X"
-    print(text)
-    return text
+import tkinter as tk
 
-def valid_key(key):
-    string = ""
-    key = key.upper()
-    for letter in key:
-        if (letter not in string):
-            string = string + letter
-        else:
-            return False
-    return True
+def button_click():
+    input_text1 = left_text1.get("1.0", "end-1c")
+    input_text2 = left_text2.get("1.0", "end-1c")
+    result_label.config(text=f"You entered:\nText Box 1: {input_text1}\nText Box 2: {input_text2}")
 
+root = tk.Tk()
+root.title("Playfair cipher")
 
-def build_playfair_matrix(key):
-    # Vytvoření prázdné matice 5x5
-    matrix = [['' for _ in range(5)] for _ in range(5)]
-    used_letters = set()
-    key = prepare_text(key)
+# Set the background color to dark green
+root.configure(bg="black")
 
-    row, col = 0, 0
+# Create and place the left text boxes
+left_text1 = tk.Text(root, width=20, height=5)
+left_text1.grid(row=0, column=0, padx=10, pady=5)
 
-    # Naplnění matice klíčovým slovem
-    for letter in key:
-        if letter not in used_letters:
-            matrix[row][col] = letter
-            used_letters.add(letter)
-            col += 1
-            if col == 5:
-                col = 0
-                row += 1
+left_text2 = tk.Text(root, width=20, height=5)
+left_text2.grid(row=1, column=0, padx=10, pady=5)
 
-    # Přidání zbývajících písmen (kromě J) do matice
-    for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
-        if letter != 'J' and letter not in used_letters:
-            matrix[row][col] = letter
-            used_letters.add(letter)
-            col += 1
-            if col == 5:
-                col = 0
-                row += 1
+left_text3 = tk.Text(root, width=20, height=5)
+left_text3.grid(row=2, column=0, padx=10, pady=5)
 
-    return matrix
+# Insert the text into the left text boxes
+left_text1.insert("1.0", "Text to encrypt ")
+left_text2.insert("1.0", "Filtered text")
+left_text3.insert("1.0", "Encrypted text")
 
-def playfair_encrypt(plaintext, key):
-    plaintext = prepare_text(plaintext)
-    matrix = build_playfair_matrix(key)
-    encrypted_text = []
-    filtered_text = ""
+# Create and place the middle text boxes
+middle_text1 = tk.Text(root, width=20, height=5)
+middle_text1.grid(row=0, column=1, padx=10, pady=5)
 
-    # Šifrování dvojic písmen
-    for i in range(0, len(plaintext), 2):
-        letter1 = plaintext[i]
-        letter2 = plaintext[i + 1]
+middle_text2 = tk.Text(root, width=20, height=5)
+middle_text2.grid(row=1, column=1, padx=10, pady=5)
 
-        # Pokud jsou písmena ve stejných dvojicích stejná, vložit 'X' mezi ně
-        if letter1 == letter2:
-            letter2 = 'X'
-            
+middle_text1.insert("1.0", "Keyword ")
 
-        filtered_text = filtered_text +letter1 + letter2 +" "
+# Create and place the right text boxes
+right_text1 = tk.Text(root, width=20, height=5)
+right_text1.grid(row=0, column=2, padx=10, pady=5)
 
-        # Najdi pozice písmen v matici
-        row1, col1 = None, None
-        row2, col2 = None, None
+right_text2 = tk.Text(root, width=20, height=5)
+right_text2.grid(row=1, column=2, padx=10, pady=5)
 
-        for row in range(5):
-            for col in range(5):
-                if matrix[row][col] == letter1:
-                    row1, col1 = row, col
-                if matrix[row][col] == letter2:
-                    row2, col2 = row, col
+right_text3 = tk.Text(root, width=20, height=5)
+right_text3.grid(row=2, column=2, padx=10, pady=5)
 
-        # Aplikace pravidel pro šifrování
-        if row1 == row2:  # Písmena jsou ve stejném řádku
-            encrypted_text.append(matrix[row1][(col1 + 1) % 5])
-            encrypted_text.append(matrix[row2][(col2 + 1) % 5])
-        elif col1 == col2:  # Písmena jsou ve stejném sloupci
-            encrypted_text.append(matrix[(row1 + 1) % 5][col1])
-            encrypted_text.append(matrix[(row2 + 1) % 5][col2])
-        else:  # Písmena jsou ve různých řádcích a sloupcích
-            encrypted_text.append(matrix[row1][col2])
-            encrypted_text.append(matrix[row2][col1])
-    
-    print(filtered_text)
-    return ''.join(encrypted_text)
+right_text1.insert("1.0", "Text to decrypt ")
+right_text2.insert("1.0", "Filtered text")
+right_text3.insert("1.0", "Decrypted text")
 
-def playfair_decrypt(ciphertext, key):
-    ciphertext = prepare_text(ciphertext)
-    matrix = build_playfair_matrix(key)
-    decrypted_text = []
+# Create and place the buttons
+left_button = tk.Button(root, text="Left Button", command=button_click)
+left_button.grid(row=3, column=0, padx=10, pady=5)
 
-    # Dešifrování dvojic písmen
-    for i in range(0, len(ciphertext), 2):
-        letter1 = ciphertext[i]
-        letter2 = ciphertext[i + 1]
+middle_button = tk.Button(root, text="Middle Button", command=button_click)
+middle_button.grid(row=3, column=1, padx=10, pady=5)
 
-        # Najdi pozice písmen v matici
-        row1, col1 = None, None
-        row2, col2 = None, None
+right_button = tk.Button(root, text="Right Button", command=button_click)
+right_button.grid(row=3, column=2, padx=10, pady=5)
 
-        for row in range(5):
-            for col in range(5):
-                if matrix[row][col] == letter1:
-                    row1, col1 = row, col
-                if matrix[row][col] == letter2:
-                    row2, col2 = row, col
+# Create a label for displaying the result
+result_label = tk.Label(root, text="", width=40)
+result_label.grid(row=4, column=1, padx=10, pady=5)
 
-        # Aplikace pravidel pro dešifrování
-        if row1 == row2:  # Písmena jsou ve stejném řádku
-            decrypted_text.append(matrix[row1][(col1 - 1) % 5])
-            decrypted_text.append(matrix[row2][(col2 - 1) % 5])
-        elif col1 == col2:  # Písmena jsou ve stejném sloupci
-            decrypted_text.append(matrix[(row1 - 1) % 5][col1])
-            decrypted_text.append(matrix[(row2 - 1) % 5][col2])
-        else:  # Písmena jsou ve různých řádcích a sloupcích
-            decrypted_text.append(matrix[row1][col2])
-            decrypted_text.append(matrix[row2][col1])
-
-    return ''.join(decrypted_text)
-
-# Hlavní část programu
-if __name__ == '__main__':
-    key = input("Zadejte klíčové slovo: ")
-    if(valid_key(key)):
-        
-        plaintext = input("Zadejte text k zašifrování: ")
-
-        encrypted_text = playfair_encrypt(plaintext, key)
-        print(f"Zašifrovaný text: {encrypted_text}")
-
-        decrypted_text = playfair_decrypt(encrypted_text, key)
-        print(f"Odšifrovaný text: {decrypted_text}")
-    else:
-        print("not a valid key")
-        
+root.mainloop()
