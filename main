@@ -1,0 +1,183 @@
+def prepare_text(text):
+    list_alphabet= ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
+    list_numbers = ['0','1','2','3','4','5','6','7','8','9']  
+    list_diakritics = [['Č','Ď','Ň','Ř','Ť','Ž','Ě','Š','Ý','Í','É','Ú','Ů','Á'],['C','D','N','R','T','Z','E','S','Y','I','E','U','U','A']] 
+    # Odstranit mezery, převést na velká písmena a nahradit "J" písmenem "I"
+    text = text.upper().replace("J", "I")
+    filtered_text = ""
+    # Doplň doplňující znak, pokud je délka lichá
+
+    for item in list_diakritics[0]:    # checks for any diakritics in string and the replaces them with nomral letters
+        if item in text:
+            #index = list_diakritics[0].index(item)
+            text = text.replace(item,list_diakritics[1] [list_diakritics[0].index(item)])
+
+    
+
+    
+    for item in text:
+        if item in list_numbers: # checks for any numbers in text and then replaces them with written numbers, for example "XoneX"
+                    list_Wnumbers = ["XZEROX","XONEX","XTWOX","XTHREEX","XFOURX","XFIVEX","XSIXX","XSEVENX","XEIGHTX","XNINEX"]
+                    item = str(item)
+                    text = text.replace(item,"")
+                    item = int(item)
+                    text = text +  list_Wnumbers[item] 
+
+    
+    for item in text:   #checks if every item from list is in list_alphabet
+        if item in list_alphabet:
+            filtered_text = filtered_text + item  #adds letters from list_alphabet into string
+        else:
+            if(item ==' '):      # checks for spaces in text and then replaces them with XMEZERAX
+                filtered_text = filtered_text + "XMEZERAX"
+    
+    if len(text) % 2 != 0:
+        text += "X"
+      
+    
+    filtered_text = filtered_text.replace(" ", "")
+    return filtered_text
+
+def valid_key(key):
+    string = ""
+    key = key.upper()
+    for letter in key:
+        if (letter not in string):
+            string = string + letter
+        else:
+            return False
+    return True
+
+
+def build_playfair_matrix(key):
+    # Vytvoření prázdné matice 5x5
+    matrix = [['' for _ in range(5)] for _ in range(5)]
+    used_letters = set()
+    key = key.upper()
+
+    row, col = 0, 0
+
+    # Naplnění matice klíčovým slovem
+    for letter in key:
+        if letter not in used_letters:
+            matrix[row][col] = letter
+            used_letters.add(letter)
+            col += 1
+            if col == 5:
+                col = 0
+                row += 1
+
+    # Přidání zbývajících písmen (kromě J) do matice
+    for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
+        if letter != 'J' and letter not in used_letters:
+            matrix[row][col] = letter
+            used_letters.add(letter)
+            col += 1
+            if col == 5:
+                col = 0
+                row += 1
+
+    return matrix
+
+def playfair_encrypt(plaintext, key):
+    plaintext = prepare_text(plaintext)
+    matrix = build_playfair_matrix(key)
+    encrypted_text = []
+    filtered_text = ""
+
+    # Šifrování dvojic písmen
+    i = 0
+    while i < len(plaintext):
+        letter1 = plaintext[i]
+        i += 1  # Move to the next character
+
+        # Check if we've reached the end of the string
+        if i == len(plaintext):
+            # If the length is odd, add 'X' as the second letter
+            letter2 = 'X'
+        else:
+            letter2 = plaintext[i]
+            i += 1  # Move to the next character
+
+        filtered_text = filtered_text + letter1 + letter2 + " "
+
+        # Najdi pozice písmen v matici
+        row1, col1 = None, None
+        row2, col2 = None, None
+
+        for row in range(5):
+            for col in range(5):
+                if matrix[row][col] == letter1:
+                    row1, col1 = row, col
+                if matrix[row][col] == letter2:
+                    row2, col2 = row, col
+
+        # Aplikace pravidel pro šifrování
+        if row1 == row2:  # Písmena jsou ve stejném řádku
+            encrypted_text.append(matrix[row1][(col1 + 1) % 5])
+            encrypted_text.append(matrix[row2][(col2 + 1) % 5])
+        elif col1 == col2:  # Písmena jsou ve stejném sloupci
+            encrypted_text.append(matrix[(row1 + 1) % 5][col1])
+            encrypted_text.append(matrix[(row2 + 1) % 5][col2])
+        else:  # Písmena jsou ve různých řádcích a sloupcích
+            encrypted_text.append(matrix[row1][col2])
+            encrypted_text.append(matrix[row2][col1])
+
+    print(filtered_text)  # Vypsání původního textu s dvojicemi
+    return ''.join(encrypted_text)
+
+def playfair_decrypt(ciphertext, key):
+    #ciphertext = prepare_text(ciphertext)
+    matrix = build_playfair_matrix(key)
+    decrypted_text = []
+
+    # Dešifrování dvojic písmen
+    for i in range(0, len(ciphertext), 2):
+        letter1 = ciphertext[i]
+        letter2 = ciphertext[i + 1]
+
+        # Najdi pozice písmen v matici
+        row1, col1 = None, None
+        row2, col2 = None, None
+
+        for row in range(5):
+            for col in range(5):
+                if matrix[row][col] == letter1:
+                    row1, col1 = row, col
+                if matrix[row][col] == letter2:
+                    row2, col2 = row, col
+
+        # Aplikace pravidel pro dešifrování
+        if row1 == row2:  # Písmena jsou ve stejném řádku
+            decrypted_text.append(matrix[row1][(col1 - 1) % 5])
+            decrypted_text.append(matrix[row2][(col2 - 1) % 5])
+        elif col1 == col2:  # Písmena jsou ve stejném sloupci
+            decrypted_text.append(matrix[(row1 - 1) % 5][col1])
+            decrypted_text.append(matrix[(row2 - 1) % 5][col2])
+        else:  # Písmena jsou ve různých řádcích a sloupcích
+            decrypted_text.append(matrix[row1][col2])
+            decrypted_text.append(matrix[row2][col1])
+
+    decrypted_text = ''.join(decrypted_text)
+    list_Wnumbers = ["XZEROX","XONEX","XTWOX","XTHREEX","XFOURX","XFIVEX","XSIXX","XSEVENX","XEIGHTX","XNINEX"] 
+    for item in list_Wnumbers:              # replaces all written numbers back with actualy numbers
+        if item in decrypted_text:
+            decrypted_text = decrypted_text.replace(item,str(list_Wnumbers.index(item)))
+
+    return decrypted_text
+
+# Hlavní část programu
+if __name__ == '__main__':
+    key = input("Zadejte klíčové slovo: ")
+    if(valid_key(key)):
+        
+        plaintext = input("Zadejte text k zašifrování: ")
+
+        encrypted_text = playfair_encrypt(plaintext, key)
+        print(f"Zašifrovaný text: {encrypted_text}")
+
+        decrypted_text = playfair_decrypt(encrypted_text, key)
+        print(f"Odšifrovaný text: {decrypted_text}")
+    else:
+        print("not a valid key")
+        
