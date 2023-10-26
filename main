@@ -2,6 +2,7 @@ def prepare_text(text):
     list_alphabet= ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
     list_numbers = ['0','1','2','3','4','5','6','7','8','9']  
     list_diakritics = [['Č','Ď','Ň','Ř','Ť','Ž','Ě','Š','Ý','Í','É','Ú','Ů','Á'],['C','D','N','R','T','Z','E','S','Y','I','E','U','U','A']] 
+    added_letter = False
     # Odstranit mezery, převést na velká písmena a nahradit "J" písmenem "I"
     text = text.upper().replace("J", "I")
     filtered_text = ""
@@ -32,11 +33,15 @@ def prepare_text(text):
                 filtered_text = filtered_text + "XMEZERAX"
     
     if len(text) % 2 != 0:
-        text += "X"
+        added_letter = True
+        if(text[-1] != "X"):
+         text += "X"
+        else:
+            text += "W"
       
     
     filtered_text = filtered_text.replace(" ", "")
-    return filtered_text
+    return filtered_text, added_letter
 
 def valid_key(key):
     string = ""
@@ -80,7 +85,8 @@ def build_playfair_matrix(key):
     return matrix
 
 def playfair_encrypt(plaintext, key):
-    plaintext = prepare_text(plaintext)
+    result = prepare_text(plaintext)
+    plaintext = result[0]
     matrix = build_playfair_matrix(key)
     encrypted_text = []
     filtered_text = ""
@@ -127,7 +133,8 @@ def playfair_encrypt(plaintext, key):
     return ''.join(encrypted_text)
 
 def playfair_decrypt(ciphertext, key):
-    #ciphertext = prepare_text(ciphertext)
+    result = prepare_text(ciphertext)
+    ciphertext = result[0]
     matrix = build_playfair_matrix(key)
     decrypted_text = []
 
@@ -159,10 +166,14 @@ def playfair_decrypt(ciphertext, key):
             decrypted_text.append(matrix[row2][col1])
 
     decrypted_text = ''.join(decrypted_text)
+    decrypted_text = decrypted_text.replace("XMEZERAX"," ")    # replaces all XMEZERAX with actual spaces
     list_Wnumbers = ["XZEROX","XONEX","XTWOX","XTHREEX","XFOURX","XFIVEX","XSIXX","XSEVENX","XEIGHTX","XNINEX"] 
     for item in list_Wnumbers:              # replaces all written numbers back with actualy numbers
         if item in decrypted_text:
             decrypted_text = decrypted_text.replace(item,str(list_Wnumbers.index(item)))
+            #if(decrypted_text)
+    if(result[1]):
+        decrypted_text = decrypted_text[:-1]
 
     return decrypted_text
 
